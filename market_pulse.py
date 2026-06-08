@@ -57,10 +57,10 @@ server = app.server
 
 # ── NAVBAR ─────────────────────────────────────────────────────────────────
 NAVBAR = dbc.Navbar(dbc.Container([
-    dbc.NavbarBrand(html.Span([
-        html.I(className="fa fa-seedling me-2", style={"color":"#27ae60"}),
-        "Market Pulse"
-    ]), href="#", style={"fontWeight":"700","fontSize":"1.2rem","color":"white"}),
+    dbc.NavbarBrand(
+        html.Img(src="/assets/logo.png", height="40px"),
+        href="/", style={"padding":"0"}
+    ),
     dbc.NavbarToggler(id="toggler"),
     dbc.Collapse(dbc.Nav([
         dbc.NavItem(dbc.NavLink("Home",         href="/",              active="exact")),
@@ -119,7 +119,8 @@ def page_home():
             html.H1("Market Pulse", style={"fontWeight":"800","fontSize":"2.4rem",
                                             "color":"white","lineHeight":"1.2"}),
             html.P("Real-time agricultural commodity price intelligence for farmers, "
-                   "traders, and policymakers across Ghana.",
+                   "traders, merchants, procurement officers, and policymakers across Ghana. "
+                   "Enhancing food security.",
                    style={"fontSize":"1.15rem","color":"#cce8d4","marginTop":"15px",
                           "maxWidth":"600px"}),
             html.Div([
