@@ -1,0 +1,25 @@
+__pycache__/
+*.pyc
+.vscode/
+.kiro/
+app/
+*.png
+BankAfrique_*
+fig_*
+run_churn_analysis.py
+build_*.py
+generate_dataset.py
+get_exact_urls.py
+fetch_wfp_data.py
+download_and_build.py
+run_app.py
+fix_about.py
+create_notebook.py
+final_notebook_builder.py
+*.ipynb
+agriculture_oop_project.py
+poultry_farm_system.py
+simple_poultry_system.py
+WEEK 4/
+WEEK3/
+*.md
