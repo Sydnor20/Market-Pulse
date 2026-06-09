@@ -29,6 +29,18 @@ def load_data():
     df["price_ghs"] = pd.to_numeric(df["price_ghs"], errors="coerce")
     df["latitude"]  = pd.to_numeric(df["latitude"],  errors="coerce")
     df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
+    # Extract numeric weight from unit column for per-KG analysis
+    df["unit_raw"] = df["unit"].str.strip()
+    def extract_kg(u):
+        if pd.isna(u): return np.nan
+        u = str(u).strip()
+        if u == "KG": return 1.0
+        if "KG" in u:
+            try: return float(u.replace("KG","").strip())
+            except: return np.nan
+        return np.nan
+    df["unit_kg"] = df["unit_raw"].apply(extract_kg)
+    df["price_per_kg"] = np.where(df["unit_kg"] > 0, df["price_ghs"] / df["unit_kg"], np.nan)
     return df[df["price_ghs"] > 0].copy()
 
 DF          = load_data()
@@ -234,6 +246,31 @@ def page_dashboard():
         ]), className="mb-4",
         style={"border":"2px solid #27ae60","borderRadius":"10px",
                "boxShadow":"0 2px 10px rgba(39,174,96,0.1)"}),
+
+        # ── TIME RANGE SLIDER ─────────────────────────────────────────────
+        dbc.Card(dbc.CardBody([
+            dbc.Row([
+                dbc.Col([
+                    html.Label("Time Range (Year-Month)", style={"fontWeight":"700","fontSize":"0.85rem"}),
+                    dcc.RangeSlider(
+                        id="sl-time",
+                        min=int(min(YEARS)),
+                        max=int(max(YEARS)),
+                        value=[int(min(YEARS)), int(max(YEARS))],
+                        marks={y: str(y) for y in YEARS[::2]},
+                        tooltip={"placement":"bottom"},
+                        allowCross=False,
+                    ),
+                ], md=10),
+                dbc.Col([
+                    html.Label("Unit", style={"fontWeight":"600","fontSize":"0.85rem"}),
+                    dcc.Dropdown(id="dd-unit",
+                                 options=["All Units","Per KG (normalized)"],
+                                 value="All Units", clearable=False),
+                ], md=2),
+            ])
+        ]), className="mb-4",
+        style={"border":"1px solid #adb5bd","borderRadius":"10px"}),
 
         # ── KPI STRIP ─────────────────────────────────────────────────────
         dbc.Row(id="kpi-row", className="mb-2"),
@@ -1012,18 +1049,29 @@ def update_commodity_list(ctype):
     Input("dd-reg",   "value"),
     Input("dd-ptype", "value"),
     Input("sl-yr",    "value"),
+    Input("sl-time",  "value"),
+    Input("dd-unit",  "value"),
 )
-def update_dashboard(commodity, region, ptype, year):
+def update_dashboard(commodity, region, ptype, year, time_range, unit_mode):
     filt = DF[DF["commodity"] == commodity].copy()
     if region != "All Regions": filt = filt[filt["region"] == region]
     if ptype  != "Both":        filt = filt[filt["pricetype"] == ptype]
+    # Apply time range filter
+    if time_range:
+        filt = filt[(filt["year"] >= time_range[0]) & (filt["year"] <= time_range[1])]
+    # Use per-KG price if selected
+    price_col = "price_per_kg" if unit_mode == "Per KG (normalized)" else "price_ghs"
+    price_label = "Price/KG (GHS)" if unit_mode == "Per KG (normalized)" else "Price (GHS)"
+    # Drop rows without valid per-kg if that mode is selected
+    if unit_mode == "Per KG (normalized)":
+        filt = filt[filt["price_per_kg"].notna()]
 
     # ── KPIs ──────────────────────────────────────────────────────────────
-    latest_p = filt[filt["date"]==filt["date"].max()]["price_ghs"].mean() if not filt.empty else 0
-    annual   = filt.groupby("year")["price_ghs"].mean()
+    latest_p = filt[filt["date"]==filt["date"].max()][price_col].mean() if not filt.empty else 0
+    annual   = filt.groupby("year")[price_col].mean()
     yoy_v    = ((annual.iloc[-1]-annual.iloc[-2])/annual.iloc[-2]*100) if len(annual)>=2 else 0
-    cv       = (filt["price_ghs"].std()/filt["price_ghs"].mean()*100) if not filt.empty else 0
-    reg_spread = filt.groupby("region")["price_ghs"].mean()
+    cv       = (filt[price_col].std()/filt[price_col].mean()*100) if not filt.empty else 0
+    reg_spread = filt.groupby("region")[price_col].mean()
     spread   = reg_spread.max()-reg_spread.min() if len(reg_spread)>1 else 0
 
     def kpi(label, val, color, icon, subtitle=""):
@@ -1045,18 +1093,18 @@ def update_dashboard(commodity, region, ptype, year):
 
     # ── INDICATOR 1a: TREND ────────────────────────────────────────────────
     if not filt.empty:
-        monthly = filt.groupby(["date","pricetype"])["price_ghs"].mean().reset_index()
-        fig_trend = px.line(monthly,x="date",y="price_ghs",color="pricetype",
+        monthly = filt.groupby(["date","pricetype"])[price_col].mean().reset_index()
+        fig_trend = px.line(monthly,x="date",y=price_col,color="pricetype",
                             color_discrete_map={"Retail":"#e74c3c","Wholesale":"#2980b9"},
-                            labels={"price_ghs":"Price (GHS)","date":"","pricetype":""},
-                            template="plotly_white",title=f"{commodity} – Price Trend")
+                            labels={price_col:price_label,"date":"","pricetype":""},
+                            template="plotly_white",title=f"{commodity} - {price_label} Trend")
         fig_trend.update_traces(line_width=2.5)
         fig_trend.update_layout(margin=dict(t=35,b=10),legend_title_text="",height=280)
     else:
         fig_trend = go.Figure()
 
     # ── INDICATOR 1b: YOY ─────────────────────────────────────────────────
-    yoy_s  = filt.groupby("year")["price_ghs"].mean().pct_change()*100
+    yoy_s  = filt.groupby("year")[price_col].mean().pct_change()*100
     yoy_df = yoy_s.dropna().reset_index()
     yoy_df.columns=["year","change"]
     yoy_df["dir"]=yoy_df["change"].apply(lambda x:"Up" if x>0 else "Down")
@@ -1068,7 +1116,7 @@ def update_dashboard(commodity, region, ptype, year):
     fig_yoy.update_layout(margin=dict(t=35,b=10),showlegend=False,height=280)
 
     # ── INDICATOR 1c: MONTH-ON-MONTH ─────────────────────────────────────
-    monthly_avg = filt.groupby(filt["date"].dt.to_period("M"))["price_ghs"].mean()
+    monthly_avg = filt.groupby(filt["date"].dt.to_period("M"))[price_col].mean()
     mom = monthly_avg.pct_change() * 100
     mom_df = mom.dropna().reset_index()
     mom_df.columns = ["period", "change"]
@@ -1111,7 +1159,7 @@ def update_dashboard(commodity, region, ptype, year):
     # ── INDICATOR 3a: REGIONAL BAR ────────────────────────────────────────
     rf = DF[(DF["commodity"]==commodity)&(DF["year"]==year)]
     if region != "All Regions": rf=rf[rf["region"]==region]
-    reg=rf.groupby("region")["price_ghs"].mean().sort_values().reset_index()
+    reg=rf.groupby("region")[price_col].mean().sort_values().reset_index()
     reg["spread_flag"]=reg["price_ghs"].apply(
         lambda x:"Cheapest" if x==reg["price_ghs"].min() else
                  ("Priciest" if x==reg["price_ghs"].max() else "Mid"))
