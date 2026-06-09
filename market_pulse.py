@@ -58,7 +58,7 @@ server = app.server
 # ── NAVBAR ─────────────────────────────────────────────────────────────────
 NAVBAR = dbc.Navbar(dbc.Container([
     dbc.NavbarBrand(
-        html.Img(src="/assets/logo.png", height="40px"),
+        html.Img(src="/assets/logo2.png", height="40px"),
         href="/", style={"padding":"0"}
     ),
     dbc.NavbarToggler(id="toggler"),
@@ -118,7 +118,7 @@ def page_home():
 
     return html.Div([
         html.Div([dbc.Container([dbc.Row([dbc.Col([
-            html.Img(src="/assets/logo.png", height="80px", style={"marginBottom":"15px"}),
+            html.Img(src="/assets/logo2.png", height="80px", style={"marginBottom":"15px"}),
             html.H1("Market Pulse", style={"fontWeight":"800","fontSize":"2.4rem",
                                             "color":"white","lineHeight":"1.2"}),
             html.P("Real-time agricultural commodity price intelligence for farmers, "
@@ -693,7 +693,7 @@ def page_datasources():
 def page_about():
     return html.Div([
         html.Div([dbc.Container([
-            html.Img(src="/assets/logo.png", height="60px", style={"marginBottom":"15px"}),
+            html.Img(src="/assets/logo2.png", height="60px", style={"marginBottom":"15px"}),
             html.H1("About Market Pulse", style={"fontWeight":"800","color":"white","fontSize":"2.4rem"}),
             html.P("Enhancing Food Security Through Market Intelligence.",
                    style={"color":"#cce8d4","fontSize":"1.2rem","fontStyle":"italic"}),
