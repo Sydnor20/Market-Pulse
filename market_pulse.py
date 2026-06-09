@@ -63,11 +63,14 @@ NAVBAR = dbc.Navbar(dbc.Container([
     ),
     dbc.NavbarToggler(id="toggler"),
     dbc.Collapse(dbc.Nav([
-        dbc.NavItem(dbc.NavLink("Home",         href="/",              active="exact")),
-        dbc.NavItem(dbc.NavLink("Dashboard",    href="/dashboard",     active="exact")),
-        dbc.NavItem(dbc.NavLink("Architecture", href="/architecture",  active="exact")),
-        dbc.NavItem(dbc.NavLink("Power BI",     href="/powerbi",       active="exact")),
-        dbc.NavItem(dbc.NavLink("About",        href="/about",         active="exact")),
+        dbc.NavItem(dbc.NavLink("Home",         href="/",          active="exact")),
+        dbc.NavItem(dbc.NavLink("About",        href="/about",     active="exact")),
+        dbc.NavItem(dbc.NavLink("Dashboard",    href="/dashboard", active="exact")),
+        dbc.NavItem(dbc.NavLink("Our Work",     href="/ourwork",   active="exact")),
+        dbc.NavItem(dbc.NavLink("Blog",         href="/blog",      active="exact")),
+        dbc.NavItem(dbc.NavLink("Live Reports", href="/reports",   active="exact")),
+        dbc.NavItem(dbc.NavLink("Team",         href="/team",      active="exact")),
+        dbc.NavItem(dbc.NavLink("Contact",      href="/contact",   active="exact")),
     ], className="ms-auto", navbar=True), id="navbar-collapse", navbar=True),
 ], fluid=True), color="dark", dark=True, sticky="top",
 style={"borderBottom":"3px solid #27ae60"})
@@ -115,7 +118,7 @@ def page_home():
 
     return html.Div([
         html.Div([dbc.Container([dbc.Row([dbc.Col([
-            html.Div("🌾", style={"fontSize":"4rem","marginBottom":"10px"}),
+            html.Img(src="/assets/logo.png", height="80px", style={"marginBottom":"15px"}),
             html.H1("Market Pulse", style={"fontWeight":"800","fontSize":"2.4rem",
                                             "color":"white","lineHeight":"1.2"}),
             html.P("Real-time agricultural commodity price intelligence for farmers, "
@@ -126,7 +129,7 @@ def page_home():
             html.Div([
                 dbc.Button("Explore Dashboard", href="/dashboard", color="success", size="lg",
                            className="me-3", style={"fontWeight":"600","borderRadius":"8px"}),
-                dbc.Button("View Architecture", href="/architecture", outline=True, color="light",
+                dbc.Button("Our Work", href="/ourwork", outline=True, color="light",
                            size="lg", style={"fontWeight":"600","borderRadius":"8px"}),
             ], style={"marginTop":"30px"}),
         ], md=8)])], fluid=True)],
@@ -248,7 +251,22 @@ def page_dashboard():
                 dbc.Row([
                     dbc.Col(dcc.Graph(id="g-trend", config={"displayModeBar":False}), md=8),
                     dbc.Col(dcc.Graph(id="g-yoy",   config={"displayModeBar":False}), md=4),
-                ])
+                ]),
+            ])
+        ], style={"borderRadius":"10px","boxShadow":"0 2px 10px rgba(0,0,0,0.07)",
+                  "borderLeft":"4px solid #27ae60"}))], className="mb-4"),
+
+        # MoM chart - separate full-width card
+        dbc.Row([dbc.Col(dbc.Card([
+            dbc.CardHeader(html.Div([
+                dbc.Badge("Indicator 1b", color="success", className="me-2"),
+                html.Strong("Month-on-Month Price Change"),
+            ])),
+            dbc.CardBody([
+                html.P("Percentage change in average price from one month to the next. "
+                       "Red bars indicate price increases, green bars show decreases.",
+                       className="text-muted", style={"fontSize":"0.85rem","marginBottom":"10px"}),
+                dcc.Graph(id="g-mom", config={"displayModeBar":False}),
             ])
         ], style={"borderRadius":"10px","boxShadow":"0 2px 10px rgba(0,0,0,0.07)",
                   "borderLeft":"4px solid #27ae60"}))], className="mb-4"),
@@ -670,48 +688,274 @@ def page_datasources():
     ], fluid=True)
 
 
+
 # ── ABOUT PAGE ─────────────────────────────────────────────────────────────
 def page_about():
-    return dbc.Container([
-        dbc.Row([dbc.Col([
-            html.H2("About Market Pulse",style={"fontWeight":"800","marginTop":"30px"}),
-            html.Hr(style={"borderColor":"#27ae60","borderWidth":"3px","width":"60px","opacity":"1"}),
-        ])]),
-        dbc.Row([
-            dbc.Col([
-                dbc.Card(dbc.CardBody([
-                    html.H5("Project Overview",style={"fontWeight":"700","color":"#27ae60"}),
-                    html.P("Market Pulse is a data-driven platform designed to bring price "
-                           "transparency to Ghana's agricultural markets. Built using real WFP "
-                           "food price data spanning 2006 to the present, it serves farmers, "
-                           "traders, financial institutions, and policymakers."),
-                    html.P("The platform is part of a broader market intelligence system that "
-                           "includes a SQL database backend, ML price forecasting, USSD access "
-                           "for feature phone users, and Power BI reports for institutional partners."),
-                ]),style={"borderRadius":"10px","boxShadow":"0 2px 10px rgba(0,0,0,0.07)","marginBottom":"20px"}),
-                dbc.Card(dbc.CardBody([
-                    html.H5("Partnerships",style={"fontWeight":"700","color":"#2980b9"}),
-                    dbc.Badge("MoFA Ghana",color="primary",className="p-2 me-2 mb-2"),
-                    dbc.Badge("Ghana Commodity Exchange",color="success",className="p-2 me-2 mb-2"),
-                    dbc.Badge("WFP",color="warning",className="p-2 me-2 mb-2"),
-                    dbc.Badge("FAO",color="danger",className="p-2 me-2 mb-2"),
-                ]),style={"borderRadius":"10px","boxShadow":"0 2px 10px rgba(0,0,0,0.07)"}),
-            ],md=6),
-            dbc.Col(dbc.Card(dbc.CardBody([
-                html.H5("Technology Stack",style={"fontWeight":"700","color":"#e67e22"}),
-                html.Table(html.Tbody([
-                    html.Tr([html.Td(html.Strong(k),style={"padding":"6px","width":"160px"}),
-                             html.Td(v,style={"padding":"6px"})])
-                    for k,v in [
-                        ("Language","Python 3.13"),("Web Framework","Plotly Dash"),
-                        ("Visualisation","Plotly, Dash Bootstrap"),("Database","PostgreSQL / SQL"),
-                        ("ML Forecasting","scikit-learn"),("BI Reports","Microsoft Power BI"),
-                        ("Data Sources","WFP, MoFA, GSS, FAO, IMF"),("USSD","Telecom gateway"),
-                    ]
-                ]),style={"fontSize":"0.9rem","width":"100%"})
-            ]),style={"borderRadius":"10px","boxShadow":"0 2px 10px rgba(0,0,0,0.07)"}),md=6),
-        ],className="mb-5"),
-    ], fluid=True)
+    return html.Div([
+        html.Div([dbc.Container([
+            html.Img(src="/assets/logo.png", height="60px", style={"marginBottom":"15px"}),
+            html.H1("About Market Pulse", style={"fontWeight":"800","color":"white","fontSize":"2.4rem"}),
+            html.P("Enhancing Food Security Through Market Intelligence.",
+                   style={"color":"#cce8d4","fontSize":"1.2rem","fontStyle":"italic"}),
+        ], fluid=True)], style={"background":"linear-gradient(135deg,#1a472a 0%,#27ae60 100%)",
+                                "padding":"60px 40px","marginBottom":"50px"}),
+        dbc.Container([
+            dbc.Row([
+                dbc.Col([
+                    html.H3("The Price Ghana Pays for Not Knowing", style={"fontWeight":"700"}),
+                    html.Hr(style={"borderColor":"#27ae60","borderWidth":"3px","width":"60px","opacity":"1"}),
+                    html.P("Maize cost GHS 18.81 in 2006. By 2023 it cost GHS 267.87 - a 1,324% increase "
+                           "in 17 years. Three years drove the sharpest spikes: 2008 (+111%, global food "
+                           "crisis), 2021 (+67%, COVID disruption), and 2023 (+53%, Ghana economic crisis). "
+                           "Each time, those hit hardest were those with the least market information.",
+                           style={"fontSize":"1rem","lineHeight":"1.9"}),
+                    html.P("In 2023, maize cost GHS 199 in Volta and GHS 460 in Western Region - same crop, "
+                           "more than double the price, a GHS 260 gap. That is not natural. It is the cost "
+                           "of broken distribution and missing market information.",
+                           style={"fontSize":"1rem","lineHeight":"1.9"}),
+                    html.P("Prices hit their lowest in September (GHS 91, harvest) and highest in May-June "
+                           "(GHS 125-139, lean season). Most participants sell or procure at the worst time "
+                           "because they lack the data to plan differently.",
+                           style={"fontSize":"1rem","lineHeight":"1.9"}),
+                    html.P("Cassava (CV 269%), tomatoes (268%), and peppers (236%) are extremely volatile. "
+                           "Rice paddy (CV 36%) and cowpeas (58%) are stable. A bank lending to a tomato "
+                           "farmer faces fundamentally different risk than one lending to a rice farmer.",
+                           style={"fontSize":"1rem","lineHeight":"1.9"}),
+                    html.P(html.Strong("Market Pulse exists to close this gap - giving every participant "
+                                       "in the food supply chain the intelligence they need."),
+                           style={"fontSize":"1.05rem","color":"#27ae60"}),
+                ], md=7),
+                dbc.Col([
+                    dbc.Card(dbc.CardBody([
+                        html.H5("Mission", style={"fontWeight":"700","color":"#27ae60"}),
+                        html.P("Democratise agricultural market intelligence in Ghana.",
+                               style={"fontSize":"0.93rem"}),
+                        html.Hr(),
+                        html.H5("Vision", style={"fontWeight":"700","color":"#2980b9"}),
+                        html.P("No one in the food supply chain makes a price decision without data.",
+                               style={"fontSize":"0.93rem"}),
+                        html.Hr(),
+                        html.H5("Data", style={"fontWeight":"700","color":"#e67e22"}),
+                        html.Ul([html.Li("WFP data: 2016-2023"), html.Li("26 commodities"),
+                                 html.Li("10 regions"), html.Li("39,000+ records")],
+                                style={"fontSize":"0.9rem","lineHeight":"2"}),
+                    ]), style={"border":"2px solid #27ae60","borderRadius":"12px"}),
+                    dbc.Card(dbc.CardBody([
+                        html.H5("Key Findings", style={"fontWeight":"700","color":"#e74c3c"}),
+                        html.Ul([html.Li("1,324% maize price increase"), html.Li("GHS 260 regional gap"),
+                                 html.Li("35% harvest vs lean season gap"), html.Li("Minor crops 3x more volatile")],
+                                style={"fontSize":"0.9rem","lineHeight":"2"}),
+                    ]), style={"border":"2px solid #e74c3c","borderRadius":"12px","marginTop":"20px"}),
+                ], md=5),
+            ], className="mb-5"),
+            html.H4("Who We Serve", style={"fontWeight":"700","marginBottom":"20px"}),
+            dbc.Row([
+                dbc.Col(dbc.Card(dbc.CardBody([html.I(className="fa fa-tractor fa-2x mb-2",style={"color":"#27ae60"}),
+                    html.H6("Farmers",style={"fontWeight":"700"}),html.P("Know when to sell and when to hold based on seasonal cycles.",className="text-muted",style={"fontSize":"0.85rem"})]),
+                    style={"textAlign":"center","borderTop":"3px solid #27ae60","borderRadius":"12px","height":"100%"}),md=2,className="mb-3"),
+                dbc.Col(dbc.Card(dbc.CardBody([html.I(className="fa fa-truck fa-2x mb-2",style={"color":"#2980b9"}),
+                    html.H6("Traders",style={"fontWeight":"700"}),html.P("Find the cheapest sourcing markets and spot regional price gaps.",className="text-muted",style={"fontSize":"0.85rem"})]),
+                    style={"textAlign":"center","borderTop":"3px solid #2980b9","borderRadius":"12px","height":"100%"}),md=2,className="mb-3"),
+                dbc.Col(dbc.Card(dbc.CardBody([html.I(className="fa fa-store fa-2x mb-2",style={"color":"#e67e22"}),
+                    html.H6("Merchants",style={"fontWeight":"700"}),html.P("Track price trends to manage stock and plan purchasing.",className="text-muted",style={"fontSize":"0.85rem"})]),
+                    style={"textAlign":"center","borderTop":"3px solid #e67e22","borderRadius":"12px","height":"100%"}),md=2,className="mb-3"),
+                dbc.Col(dbc.Card(dbc.CardBody([html.I(className="fa fa-clipboard-list fa-2x mb-2",style={"color":"#8e44ad"}),
+                    html.H6("Procurement",style={"fontWeight":"700"}),html.P("Compare prices across regions and time to optimise budgets.",className="text-muted",style={"fontSize":"0.85rem"})]),
+                    style={"textAlign":"center","borderTop":"3px solid #8e44ad","borderRadius":"12px","height":"100%"}),md=2,className="mb-3"),
+                dbc.Col(dbc.Card(dbc.CardBody([html.I(className="fa fa-landmark fa-2x mb-2",style={"color":"#c0392b"}),
+                    html.H6("Banks",style={"fontWeight":"700"}),html.P("Assess agricultural loan risk using volatility data.",className="text-muted",style={"fontSize":"0.85rem"})]),
+                    style={"textAlign":"center","borderTop":"3px solid #c0392b","borderRadius":"12px","height":"100%"}),md=2,className="mb-3"),
+                dbc.Col(dbc.Card(dbc.CardBody([html.I(className="fa fa-building-columns fa-2x mb-2",style={"color":"#16a085"}),
+                    html.H6("Policy",style={"fontWeight":"700"}),html.P("Detect price shocks early for food security interventions.",className="text-muted",style={"fontSize":"0.85rem"})]),
+                    style={"textAlign":"center","borderTop":"3px solid #16a085","borderRadius":"12px","height":"100%"}),md=2,className="mb-3"),
+            ], className="mb-5"),
+        ], fluid=True),
+    ])
+
+
+# ── TEAM PAGE ──────────────────────────────────────────────────────────────
+def page_team():
+    TEAM = [
+        {"name":"John Mefful","role":"Data Scientist","lead":True,
+         "bio":"Leads data strategy and modelling pipeline. ML and agricultural market analysis."},
+        {"name":"Sydnor Amoah","role":"Data Scientist","lead":False,
+         "bio":"Interactive dashboard and data visualisation. Analytical indicators and front-end."},
+        {"name":"Rebecca Abugri","role":"Data Scientist","lead":False,
+         "bio":"Data collection, cleaning, and integration from WFP, MoFA, and other sources."},
+        {"name":"Mohammed Abukari","role":"Data Scientist","lead":False,
+         "bio":"Spatial analysis and regional price dispersion modelling across Ghana."},
+        {"name":"Yasira Musa","role":"Data Scientist","lead":False,
+         "bio":"Seasonal price pattern analysis and volatility indicator framework."},
+    ]
+    def mcard(m):
+        ini = "".join([w[0] for w in m["name"].split()])
+        return dbc.Col(dbc.Card(dbc.CardBody([
+            html.Div(ini, style={"width":"80px","height":"80px","borderRadius":"50%",
+                "background":"linear-gradient(135deg,#1a472a,#27ae60)","color":"white",
+                "fontSize":"1.6rem","fontWeight":"800","display":"flex","alignItems":"center",
+                "justifyContent":"center","margin":"0 auto 15px"}),
+            html.H5(m["name"], style={"fontWeight":"700","textAlign":"center"}),
+            html.P(m["role"], className="text-center", style={"color":"#27ae60","fontWeight":"600","fontSize":"0.88rem"}),
+            dbc.Badge("Team Lead", color="success", className="d-block mx-auto mb-2",
+                      style={"width":"fit-content"}) if m["lead"] else html.Div(),
+            html.Hr(),
+            html.P(m["bio"], className="text-muted", style={"fontSize":"0.88rem","textAlign":"center"}),
+        ]), style={"borderRadius":"12px","boxShadow":"0 4px 20px rgba(0,0,0,0.08)","height":"100%"}),
+        md=4, className="mb-4")
+    return html.Div([
+        html.Div([dbc.Container([
+            html.H1("Meet the Team", style={"fontWeight":"800","color":"white","fontSize":"2.2rem"}),
+        ], fluid=True)], style={"background":"linear-gradient(135deg,#1a472a 0%,#27ae60 100%)",
+                                "padding":"60px 40px","marginBottom":"50px"}),
+        dbc.Container(dbc.Row([mcard(m) for m in TEAM], className="mb-5"), fluid=True),
+    ])
+
+
+# ── OUR WORK PAGE ──────────────────────────────────────────────────────────
+def page_ourwork():
+    def wcard(icon, title, desc, tag, color):
+        return dbc.Col(dbc.Card(dbc.CardBody([
+            html.I(className=f"fa {icon} fa-2x mb-3", style={"color":color}),
+            dbc.Badge(tag, color="secondary", className="mb-2"),
+            html.H5(title, style={"fontWeight":"700"}),
+            html.P(desc, className="text-muted", style={"fontSize":"0.9rem"}),
+        ]), style={"borderRadius":"12px","boxShadow":"0 4px 20px rgba(0,0,0,0.08)","height":"100%"}),
+        md=4, className="mb-4")
+    return html.Div([
+        html.Div([dbc.Container([
+            html.H1("Our Work", style={"fontWeight":"800","color":"white","fontSize":"2.2rem"}),
+        ], fluid=True)], style={"background":"linear-gradient(135deg,#1a472a 0%,#27ae60 100%)",
+                                "padding":"60px 40px","marginBottom":"50px"}),
+        dbc.Container([
+            dbc.Row([
+                wcard("fa-chart-line","Price Intelligence Dashboard",
+                      "Interactive dashboard with 4 analytical indicators covering 26 commodities across all regions.","Live","#27ae60"),
+                wcard("fa-mobile-screen","USSD Price Access",
+                      "USSD interface for farmers on basic mobile phones - no smartphone needed.","In Development","#2980b9"),
+                wcard("fa-robot","ML Price Forecasting",
+                      "Machine learning model to forecast commodity prices up to 3 months ahead.","In Development","#e67e22"),
+                wcard("fa-chart-pie","Power BI Reports",
+                      "Monthly institutional reports for MoFA, GCX, and BankAfrique.","Coming Soon","#8e44ad"),
+                wcard("fa-database","Multi-Source Integration",
+                      "Integration of WFP, MoFA, GSS, FAO, IMF data into unified SQL database.","In Progress","#c0392b"),
+                wcard("fa-globe","National Expansion",
+                      "Expanding coverage to district-level monitoring across all 16 regions.","Planned","#16a085"),
+            ]),
+        ], fluid=True),
+    ])
+
+
+# ── BLOG PAGE ──────────────────────────────────────────────────────────────
+def page_blog():
+    posts = [
+        {"t":"Why Maize Prices Spike Every March","d":"May 2026","tag":"Price Dynamics","c":"#27ae60",
+         "s":"Each year between February and April, maize prices in northern markets rise sharply due to seasonal supply cycles."},
+        {"t":"The Hidden Cost of Market Information Gaps","d":"Apr 2026","tag":"Market Access","c":"#2980b9",
+         "s":"When farmers lack price data, they almost always sell below fair value. We quantify that cost."},
+        {"t":"Which Commodities Are Most Volatile?","d":"Mar 2026","tag":"Volatility","c":"#e74c3c",
+         "s":"Using CV analysis across 26 commodities, we rank which crops carry the most price risk."},
+        {"t":"North vs South: Ghana Price Divide","d":"Feb 2026","tag":"Spatial","c":"#e67e22",
+         "s":"Food prices in northern regions are consistently higher. We map the dispersion."},
+        {"t":"Tomato Price Crashes After Harvest","d":"Jan 2026","tag":"Seasonality","c":"#8e44ad",
+         "s":"Tomato prices can drop 60% within weeks of peak harvest. We analyse the cycle."},
+        {"t":"How USSD Brings Data to Every Farmer","d":"Dec 2025","tag":"Technology","c":"#16a085",
+         "s":"Over 60% of Ghanaian farmers use basic phones. USSD could be the highest-impact intervention."},
+    ]
+    def bcard(p):
+        return dbc.Col(dbc.Card(dbc.CardBody([
+            dbc.Badge(p["tag"], color="secondary", className="mb-2"),
+            html.H5(p["t"], style={"fontWeight":"700","lineHeight":"1.4"}),
+            html.Small(p["d"], className="text-muted d-block mb-2"),
+            html.P(p["s"], className="text-muted", style={"fontSize":"0.88rem"}),
+        ]), style={"borderRadius":"12px","borderTop":f"3px solid {p['c']}","height":"100%"}),
+        md=4, className="mb-4")
+    return html.Div([
+        html.Div([dbc.Container([
+            html.H1("Market Intelligence Blog", style={"fontWeight":"800","color":"white","fontSize":"2.2rem"}),
+        ], fluid=True)], style={"background":"linear-gradient(135deg,#1a472a 0%,#27ae60 100%)",
+                                "padding":"60px 40px","marginBottom":"50px"}),
+        dbc.Container(dbc.Row([bcard(p) for p in posts]), fluid=True),
+    ])
+
+
+# ── LIVE REPORTS PAGE ──────────────────────────────────────────────────────
+def page_reports():
+    reps = [
+        {"t":"Ghana Food Price Monitor - May 2026","p":"May 2026","type":"Monthly","c":"#27ae60"},
+        {"t":"Q1 2026 Agricultural Market Report","p":"Jan-Mar 2026","type":"Quarterly","c":"#2980b9"},
+        {"t":"Annual Price Volatility Report 2025","p":"Full Year 2025","type":"Annual","c":"#e74c3c"},
+        {"t":"Seasonality Atlas - Major Commodities","p":"2016-2023","type":"Reference","c":"#8e44ad"},
+        {"t":"Spatial Price Dispersion Index 2025","p":"2025","type":"Special","c":"#e67e22"},
+        {"t":"Ghana Food Price Monitor - Apr 2026","p":"Apr 2026","type":"Monthly","c":"#27ae60"},
+    ]
+    def rcard(r):
+        return dbc.Col(dbc.Card(dbc.CardBody([
+            html.I(className="fa fa-file-pdf fa-2x mb-2", style={"color":r["c"]}),
+            dbc.Badge(r["type"], color="secondary", className="mb-2"),
+            html.H6(r["t"], style={"fontWeight":"700"}),
+            html.Small(r["p"], className="text-muted d-block mb-2"),
+            dbc.Button([html.I(className="fa fa-download me-2"),"Download PDF"],
+                       color="success", size="sm", outline=True, style={"borderRadius":"6px"}),
+        ]), style={"borderRadius":"12px","borderTop":f"3px solid {r['c']}","height":"100%"}),
+        md=4, className="mb-4")
+    return html.Div([
+        html.Div([dbc.Container([
+            html.H1("Live Reports", style={"fontWeight":"800","color":"white","fontSize":"2.2rem"}),
+            html.P("Download periodic market intelligence reports.", style={"color":"#cce8d4"}),
+        ], fluid=True)], style={"background":"linear-gradient(135deg,#1a472a 0%,#27ae60 100%)",
+                                "padding":"60px 40px","marginBottom":"50px"}),
+        dbc.Container(dbc.Row([rcard(r) for r in reps]), fluid=True),
+    ])
+
+
+# ── CONTACT PAGE ───────────────────────────────────────────────────────────
+def page_contact():
+    return html.Div([
+        html.Div([dbc.Container([
+            html.H1("Contact Us", style={"fontWeight":"800","color":"white","fontSize":"2.2rem"}),
+        ], fluid=True)], style={"background":"linear-gradient(135deg,#1a472a 0%,#27ae60 100%)",
+                                "padding":"60px 40px","marginBottom":"50px"}),
+        dbc.Container([
+            dbc.Row([
+                dbc.Col([
+                    html.H4("Send Us a Message", style={"fontWeight":"700","marginBottom":"20px"}),
+                    dbc.Card(dbc.CardBody([
+                        dbc.Row([
+                            dbc.Col([html.Label("Name",style={"fontWeight":"600","fontSize":"0.85rem"}),
+                                     dbc.Input(placeholder="Your name",className="mb-3")],md=6),
+                            dbc.Col([html.Label("Email",style={"fontWeight":"600","fontSize":"0.85rem"}),
+                                     dbc.Input(placeholder="your@email.com",type="email",className="mb-3")],md=6),
+                        ]),
+                        html.Label("Subject",style={"fontWeight":"600","fontSize":"0.85rem"}),
+                        dbc.Input(placeholder="Subject",className="mb-3"),
+                        html.Label("Message",style={"fontWeight":"600","fontSize":"0.85rem"}),
+                        dbc.Textarea(placeholder="Your message...",rows=5,className="mb-3"),
+                        dbc.Button("Send Message",color="success",size="lg",
+                                   style={"width":"100%","borderRadius":"8px","fontWeight":"600"}),
+                    ]), style={"borderRadius":"12px"}),
+                ], md=7),
+                dbc.Col([
+                    html.H4("Get In Touch", style={"fontWeight":"700","marginBottom":"20px"}),
+                    dbc.Card(dbc.CardBody([
+                        html.P([html.I(className="fa fa-envelope me-2", style={"color":"#27ae60"}),
+                                html.A("marketpulse@gmail.com", href="mailto:marketpulse@gmail.com")],
+                               style={"marginBottom":"15px"}),
+                        html.P([html.I(className="fa fa-location-dot me-2", style={"color":"#2980b9"}),
+                                "Accra, Ghana"], className="text-muted"),
+                        html.Hr(),
+                        html.H6("Follow Us", style={"fontWeight":"700"}),
+                        dbc.Button([html.I(className="fa-brands fa-x-twitter me-2"),"Twitter/X"],
+                                   color="dark",outline=True,size="sm",className="me-2 mb-2"),
+                        dbc.Button([html.I(className="fa-brands fa-linkedin me-2"),"LinkedIn"],
+                                   color="primary",outline=True,size="sm",className="me-2 mb-2"),
+                        dbc.Button([html.I(className="fa-brands fa-facebook me-2"),"Facebook"],
+                                   color="primary",outline=True,size="sm",className="mb-2"),
+                    ]), style={"borderRadius":"12px"}),
+                ], md=5),
+            ], className="mb-5"),
+        ], fluid=True),
+    ])
+
 
 # ── PAGE ROUTING CALLBACK ──────────────────────────────────────────────────
 @app.callback(
@@ -721,12 +965,18 @@ def page_about():
 def route(pathname):
     if pathname == "/dashboard":
         return page_dashboard()
-    elif pathname == "/architecture":
-        return page_architecture()
-    elif pathname == "/powerbi":
-        return page_powerbi()
+    elif pathname == "/ourwork":
+        return page_ourwork()
+    elif pathname == "/blog":
+        return page_blog()
+    elif pathname == "/reports":
+        return page_reports()
     elif pathname == "/about":
         return page_about()
+    elif pathname == "/team":
+        return page_team()
+    elif pathname == "/contact":
+        return page_contact()
     else:
         return page_home()
 
@@ -750,6 +1000,7 @@ def update_commodity_list(ctype):
     Output("kpi-row",        "children"),
     Output("g-trend",        "figure"),
     Output("g-yoy",          "figure"),
+    Output("g-mom",          "figure"),
     Output("g-vol-major",    "figure"),
     Output("g-vol-minor",    "figure"),
     Output("g-region",       "figure"),
@@ -815,6 +1066,30 @@ def update_dashboard(commodity, region, ptype, year):
                    title="Year-on-Year Change (%)")
     fig_yoy.add_hline(y=0,line_dash="dash",line_color="black",line_width=1)
     fig_yoy.update_layout(margin=dict(t=35,b=10),showlegend=False,height=280)
+
+    # ── INDICATOR 1c: MONTH-ON-MONTH ─────────────────────────────────────
+    monthly_avg = filt.groupby(filt["date"].dt.to_period("M"))["price_ghs"].mean()
+    mom = monthly_avg.pct_change() * 100
+    mom_df = mom.dropna().reset_index()
+    mom_df.columns = ["period", "change"]
+    mom_df["period"] = mom_df["period"].astype(str)
+    mom_df["dir"] = mom_df["change"].apply(lambda x: "Increase" if x > 0 else "Decrease")
+    if len(mom_df) > 0:
+        display_df = mom_df.tail(min(12, len(mom_df)))
+        fig_mom = go.Figure()
+        for _, row in display_df.iterrows():
+            color = "#e74c3c" if row["change"] > 0 else "#27ae60"
+            fig_mom.add_trace(go.Bar(x=[row["period"]], y=[row["change"]],
+                                     marker_color=color, showlegend=False))
+        fig_mom.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
+        fig_mom.update_layout(template="plotly_white", height=400,
+                              title=f"{commodity} - Month-on-Month Price Change",
+                              margin=dict(t=50, b=80, l=60, r=30),
+                              xaxis_title="", yaxis_title="MoM Change (%)",
+                              xaxis_tickangle=-45)
+    else:
+        fig_mom = go.Figure()
+        fig_mom.update_layout(height=400, title="No month-on-month data available")
 
     # ── INDICATOR 2: VOLATILITY MAJOR & MINOR ─────────────────────────────
     def vol_chart(comm_list, title):
@@ -895,7 +1170,7 @@ def update_dashboard(commodity, region, ptype, year):
                                    striped=True,hover=True,responsive=True,size="sm",
                                    style={"fontSize":"0.88rem"})
 
-    return kpis,fig_trend,fig_yoy,fig_vol_major,fig_vol_minor,fig_region,fig_map,fig_heat,fig_seas,table
+    return kpis,fig_trend,fig_yoy,fig_mom,fig_vol_major,fig_vol_minor,fig_region,fig_map,fig_heat,fig_seas,table
 
 
 @app.callback(
