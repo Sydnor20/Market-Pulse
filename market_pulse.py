@@ -75,14 +75,13 @@ NAVBAR = dbc.Navbar(dbc.Container([
     ),
     dbc.NavbarToggler(id="toggler"),
     dbc.Collapse(dbc.Nav([
-        dbc.NavItem(dbc.NavLink("Home",         href="/",          active="exact")),
-        dbc.NavItem(dbc.NavLink("About",        href="/about",     active="exact")),
-        dbc.NavItem(dbc.NavLink("Dashboard",    href="/dashboard", active="exact")),
-        dbc.NavItem(dbc.NavLink("Our Work",     href="/ourwork",   active="exact")),
-        dbc.NavItem(dbc.NavLink("Blog",         href="/blog",      active="exact")),
-        dbc.NavItem(dbc.NavLink("Live Reports", href="/reports",   active="exact")),
-        dbc.NavItem(dbc.NavLink("Team",         href="/team",      active="exact")),
-        dbc.NavItem(dbc.NavLink("Contact",      href="/contact",   active="exact")),
+        dbc.NavItem(dbc.NavLink("Home",           href="/",          active="exact")),
+        dbc.NavItem(dbc.NavLink("About",          href="/about",     active="exact")),
+        dbc.NavItem(dbc.NavLink("Dashboard",      href="/dashboard", active="exact")),
+        dbc.NavItem(dbc.NavLink("Our Work",       href="/ourwork",   active="exact")),
+        dbc.NavItem(dbc.NavLink("Blog",           href="/blog",      active="exact")),
+        dbc.NavItem(dbc.NavLink("Team",           href="/team",      active="exact")),
+        dbc.NavItem(dbc.NavLink("Contact",        href="/contact",   active="exact")),
     ], className="ms-auto", navbar=True), id="navbar-collapse", navbar=True),
 ], fluid=True), color="dark", dark=True, sticky="top",
 style={"borderBottom":"3px solid #27ae60"})
@@ -232,16 +231,22 @@ def page_dashboard():
                 dbc.Col([
                     html.Label("Commodity", style={"fontWeight":"600","fontSize":"0.85rem"}),
                     dcc.Dropdown(id="dd-comm", options=MAJOR, value=MAJOR[0], clearable=False),
-                ], md=3),
+                ], md=2),
                 dbc.Col([
                     html.Label("Region", style={"fontWeight":"600","fontSize":"0.85rem"}),
-                    dcc.Dropdown(id="dd-reg", options=REGIONS, value="All Regions", clearable=False),
+                    dcc.Dropdown(id="dd-reg", options=sorted(DF["region"].unique().tolist()),
+                                 value=[], clearable=True, multi=True, placeholder="All Regions"),
+                ], md=2),
+                dbc.Col([
+                    html.Label("Market", style={"fontWeight":"600","fontSize":"0.85rem"}),
+                    dcc.Dropdown(id="dd-mkt", options=sorted(DF["market"].unique().tolist()),
+                                 value=[], clearable=True, multi=True, placeholder="All Markets"),
                 ], md=2),
                 dbc.Col([
                     html.Label("Price Type", style={"fontWeight":"600","fontSize":"0.85rem"}),
                     dcc.Dropdown(id="dd-ptype", options=["Both","Wholesale","Retail"],
                                  value="Both", clearable=False),
-                ], md=2),
+                ], md=1),
             ])
         ]), className="mb-4",
         style={"border":"2px solid #27ae60","borderRadius":"10px",
@@ -251,7 +256,7 @@ def page_dashboard():
         dbc.Card(dbc.CardBody([
             dbc.Row([
                 dbc.Col([
-                    html.Label("Time Range (Year-Month)", style={"fontWeight":"700","fontSize":"0.85rem"}),
+                    html.Label("Year Range", style={"fontWeight":"700","fontSize":"0.85rem"}),
                     dcc.RangeSlider(
                         id="sl-time",
                         min=int(min(YEARS)),
@@ -261,13 +266,20 @@ def page_dashboard():
                         tooltip={"placement":"bottom"},
                         allowCross=False,
                     ),
-                ], md=10),
+                ], md=6),
                 dbc.Col([
-                    html.Label("Unit", style={"fontWeight":"600","fontSize":"0.85rem"}),
+                    html.Label("Month(s)", style={"fontWeight":"600","fontSize":"0.85rem"}),
+                    dcc.Dropdown(id="dd-month",
+                                 options=[{"label":m,"value":i+1} for i,m in enumerate(MONTHS)],
+                                 value=[], clearable=True, multi=True,
+                                 placeholder="All Months"),
+                ], md=3),
+                dbc.Col([
+                    html.Label("Price Mode", style={"fontWeight":"600","fontSize":"0.85rem"}),
                     dcc.Dropdown(id="dd-unit",
-                                 options=["All Units","Per KG (normalized)"],
-                                 value="All Units", clearable=False),
-                ], md=2),
+                                 options=["As Recorded (with unit)","Per KG (normalized)"],
+                                 value="As Recorded (with unit)", clearable=False),
+                ], md=3),
             ])
         ]), className="mb-4",
         style={"border":"1px solid #adb5bd","borderRadius":"10px"}),
@@ -399,7 +411,71 @@ def page_dashboard():
                                    style={"fontWeight":"700","margin":"0"})),
             dbc.CardBody(html.Div(id="tbl-latest"))
         ], style={"borderRadius":"10px","boxShadow":"0 2px 10px rgba(0,0,0,0.07)"}))],
-        className="mb-5"),
+        className="mb-4"),
+
+        # ── DOWNLOADABLE REPORTS ──────────────────────────────────────────
+        dbc.Row([dbc.Col(dbc.Card([
+            dbc.CardHeader(html.Div([
+                dbc.Badge("Reports", color="info", className="me-2"),
+                html.Strong("Download Market Intelligence Reports"),
+            ])),
+            dbc.CardBody([
+                html.P("Periodic reports generated from this dashboard's data. "
+                       "Click to download.",
+                       className="text-muted", style={"fontSize":"0.85rem","marginBottom":"15px"}),
+                dbc.Row([
+                    dbc.Col(dbc.Card(dbc.CardBody([
+                        html.I(className="fa fa-file-pdf fa-2x mb-2", style={"color":"#27ae60"}),
+                        dbc.Badge("Monthly", color="secondary", className="mb-2"),
+                        html.H6("Food Price Monitor - May 2026", style={"fontWeight":"700","fontSize":"0.85rem"}),
+                        html.Small("May 2026", className="text-muted d-block mb-2"),
+                        dbc.Button([html.I(className="fa fa-download me-2"),"PDF"],
+                                   color="success",size="sm",outline=True,style={"borderRadius":"6px"}),
+                    ],className="text-center"), style={"borderRadius":"10px","borderTop":"3px solid #27ae60"}), md=2, className="mb-3"),
+                    dbc.Col(dbc.Card(dbc.CardBody([
+                        html.I(className="fa fa-file-pdf fa-2x mb-2", style={"color":"#2980b9"}),
+                        dbc.Badge("Quarterly", color="secondary", className="mb-2"),
+                        html.H6("Q1 2026 Market Report", style={"fontWeight":"700","fontSize":"0.85rem"}),
+                        html.Small("Jan-Mar 2026", className="text-muted d-block mb-2"),
+                        dbc.Button([html.I(className="fa fa-download me-2"),"PDF"],
+                                   color="primary",size="sm",outline=True,style={"borderRadius":"6px"}),
+                    ],className="text-center"), style={"borderRadius":"10px","borderTop":"3px solid #2980b9"}), md=2, className="mb-3"),
+                    dbc.Col(dbc.Card(dbc.CardBody([
+                        html.I(className="fa fa-file-pdf fa-2x mb-2", style={"color":"#e74c3c"}),
+                        dbc.Badge("Annual", color="secondary", className="mb-2"),
+                        html.H6("Volatility Report 2025", style={"fontWeight":"700","fontSize":"0.85rem"}),
+                        html.Small("Full Year 2025", className="text-muted d-block mb-2"),
+                        dbc.Button([html.I(className="fa fa-download me-2"),"PDF"],
+                                   color="danger",size="sm",outline=True,style={"borderRadius":"6px"}),
+                    ],className="text-center"), style={"borderRadius":"10px","borderTop":"3px solid #e74c3c"}), md=2, className="mb-3"),
+                    dbc.Col(dbc.Card(dbc.CardBody([
+                        html.I(className="fa fa-file-pdf fa-2x mb-2", style={"color":"#8e44ad"}),
+                        dbc.Badge("Reference", color="secondary", className="mb-2"),
+                        html.H6("Seasonality Atlas", style={"fontWeight":"700","fontSize":"0.85rem"}),
+                        html.Small("2016-2023", className="text-muted d-block mb-2"),
+                        dbc.Button([html.I(className="fa fa-download me-2"),"PDF"],
+                                   color="secondary",size="sm",outline=True,style={"borderRadius":"6px"}),
+                    ],className="text-center"), style={"borderRadius":"10px","borderTop":"3px solid #8e44ad"}), md=2, className="mb-3"),
+                    dbc.Col(dbc.Card(dbc.CardBody([
+                        html.I(className="fa fa-file-pdf fa-2x mb-2", style={"color":"#e67e22"}),
+                        dbc.Badge("Special", color="secondary", className="mb-2"),
+                        html.H6("Spatial Dispersion Index", style={"fontWeight":"700","fontSize":"0.85rem"}),
+                        html.Small("2025", className="text-muted d-block mb-2"),
+                        dbc.Button([html.I(className="fa fa-download me-2"),"PDF"],
+                                   color="warning",size="sm",outline=True,style={"borderRadius":"6px"}),
+                    ],className="text-center"), style={"borderRadius":"10px","borderTop":"3px solid #e67e22"}), md=2, className="mb-3"),
+                    dbc.Col(dbc.Card(dbc.CardBody([
+                        html.I(className="fa fa-file-pdf fa-2x mb-2", style={"color":"#27ae60"}),
+                        dbc.Badge("Monthly", color="secondary", className="mb-2"),
+                        html.H6("Food Price Monitor - Apr 2026", style={"fontWeight":"700","fontSize":"0.85rem"}),
+                        html.Small("Apr 2026", className="text-muted d-block mb-2"),
+                        dbc.Button([html.I(className="fa fa-download me-2"),"PDF"],
+                                   color="success",size="sm",outline=True,style={"borderRadius":"6px"}),
+                    ],className="text-center"), style={"borderRadius":"10px","borderTop":"3px solid #27ae60"}), md=2, className="mb-3"),
+                ]),
+            ])
+        ], style={"borderRadius":"10px","boxShadow":"0 2px 10px rgba(0,0,0,0.07)",
+                  "borderLeft":"4px solid #17a2b8"}))], className="mb-5"),
 
     ], fluid=True)
 
@@ -1047,21 +1123,31 @@ def update_commodity_list(ctype):
     Output("tbl-latest",     "children"),
     Input("dd-comm",  "value"),
     Input("dd-reg",   "value"),
+    Input("dd-mkt",   "value"),
     Input("dd-ptype", "value"),
     Input("sl-yr",    "value"),
     Input("sl-time",  "value"),
+    Input("dd-month", "value"),
     Input("dd-unit",  "value"),
 )
-def update_dashboard(commodity, region, ptype, year, time_range, unit_mode):
+def update_dashboard(commodity, region, market, ptype, year, time_range, month_sel, unit_mode):
     filt = DF[DF["commodity"] == commodity].copy()
-    if region != "All Regions": filt = filt[filt["region"] == region]
+    if region and len(region) > 0: filt = filt[filt["region"].isin(region)]
+    if market and len(market) > 0: filt = filt[filt["market"].isin(market)]
     if ptype  != "Both":        filt = filt[filt["pricetype"] == ptype]
     # Apply time range filter
     if time_range:
         filt = filt[(filt["year"] >= time_range[0]) & (filt["year"] <= time_range[1])]
+    # Apply month filter
+    if month_sel and len(month_sel) > 0:
+        filt = filt[filt["month"].isin(month_sel)]
     # Use per-KG price if selected
     price_col = "price_per_kg" if unit_mode == "Per KG (normalized)" else "price_ghs"
     price_label = "Price/KG (GHS)" if unit_mode == "Per KG (normalized)" else "Price (GHS)"
+    # Get the unit for display
+    unit_display = filt["unit_raw"].mode().iloc[0] if not filt.empty and not filt["unit_raw"].isna().all() else ""
+    if unit_mode == "As Recorded (with unit)" and unit_display:
+        price_label = f"Price (GHS / {unit_display})"
     # Drop rows without valid per-kg if that mode is selected
     if unit_mode == "Per KG (normalized)":
         filt = filt[filt["price_per_kg"].notna()]
@@ -1074,6 +1160,13 @@ def update_dashboard(commodity, region, ptype, year, time_range, unit_mode):
     reg_spread = filt.groupby("region")[price_col].mean()
     spread   = reg_spread.max()-reg_spread.min() if len(reg_spread)>1 else 0
 
+    # MoM calculation
+    if not filt.empty:
+        mon_avg = filt.groupby(filt["date"].dt.to_period("M"))[price_col].mean()
+        mom_v = ((mon_avg.iloc[-1]-mon_avg.iloc[-2])/mon_avg.iloc[-2]*100) if len(mon_avg)>=2 else 0
+    else:
+        mom_v = 0
+
     def kpi(label, val, color, icon, subtitle=""):
         return dbc.Col(dbc.Card(dbc.CardBody([
             html.I(className=f"fa {icon} fa-lg mb-1",style={"color":color}),
@@ -1082,11 +1175,12 @@ def update_dashboard(commodity, region, ptype, year, time_range, unit_mode):
             html.P(subtitle,className="text-muted mb-0",style={"fontSize":"0.72rem"}),
         ],className="text-center py-3"),
         style={"border":f"1px solid {color}","borderRadius":"10px"}),
-        xs=6,md=3,className="mb-3")
+        xs=6,md=True,className="mb-3")
 
     kpis = [
         kpi("Latest Price",     f"GHS {latest_p:,.2f}", "#27ae60","fa-tag",     f"{commodity}"),
-        kpi("YoY Change",       f"{yoy_v:+.1f}%",       "#e74c3c" if yoy_v>0 else "#27ae60","fa-arrow-trend-up","Price Dynamics"),
+        kpi("YoY Change",       f"{yoy_v:+.1f}%",       "#e74c3c" if yoy_v>0 else "#27ae60","fa-arrow-trend-up","Annual"),
+        kpi("MoM Change",       f"{mom_v:+.1f}%",       "#e74c3c" if mom_v>0 else "#27ae60","fa-calendar-day","Monthly"),
         kpi("Volatility (CV%)", f"{cv:.1f}%",            "#e67e22","fa-bolt",    "High > 30%"),
         kpi("Regional Spread",  f"GHS {spread:,.2f}",   "#8e44ad","fa-map",     "Spatial Dispersion"),
     ]
@@ -1158,7 +1252,7 @@ def update_dashboard(commodity, region, ptype, year, time_range, unit_mode):
 
     # ── INDICATOR 3a: REGIONAL BAR ────────────────────────────────────────
     rf = DF[(DF["commodity"]==commodity)&(DF["year"]==year)]
-    if region != "All Regions": rf=rf[rf["region"]==region]
+    if region and len(region) > 0: rf=rf[rf["region"].isin(region)]
     reg=rf.groupby("region")[price_col].mean().sort_values().reset_index()
     reg["spread_flag"]=reg["price_ghs"].apply(
         lambda x:"Cheapest" if x==reg["price_ghs"].min() else
@@ -1229,7 +1323,7 @@ def update_dashboard(commodity, region, ptype, year, time_range, unit_mode):
 def update_multi(selected, region):
     if not selected: return go.Figure()
     filt = DF[DF["commodity"].isin(selected)].copy()
-    if region != "All Regions": filt = filt[filt["region"]==region]
+    if region and len(region) > 0: filt = filt[filt["region"].isin(region)]
     monthly = filt.groupby(["date","commodity"])["price_ghs"].mean().reset_index()
     fig = px.line(monthly,x="date",y="price_ghs",color="commodity",
                   labels={"price_ghs":"Price (GHS)","date":"Date","commodity":""},

@@ -3,9 +3,8 @@ __pycache__/
 .vscode/
 .kiro/
 app/
-*.png
+fig_*.png
 BankAfrique_*
-fig_*
 run_churn_analysis.py
 build_*.py
 generate_dataset.py
@@ -14,6 +13,8 @@ fetch_wfp_data.py
 download_and_build.py
 run_app.py
 fix_about.py
+fix_about2.py
+rebuild.py
 create_notebook.py
 final_notebook_builder.py
 *.ipynb
@@ -23,3 +24,5 @@ simple_poultry_system.py
 WEEK 4/
 WEEK3/
 *.md
+fig_coverage.png
+fig_market_map.png
