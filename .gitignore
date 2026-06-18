@@ -26,3 +26,5 @@ WEEK3/
 *.md
 fig_coverage.png
 fig_market_map.png
+users.csv
+listings.csv
